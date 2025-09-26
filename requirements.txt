@@ -1,0 +1,26 @@
+# Base
+numpy
+pandas
+
+# Hugging Face + PyTorch
+transformers
+torch
+sentencepiece
+sacremoses
+
+# TensorFlow + Audio
+tensorflow
+tensorflow-hub
+librosa
+soundfile
+
+# API
+fastapi
+uvicorn
+
+# Jupyter
+notebook
+jupyter
+
+# Дополнительно (удобные утилиты)
+scikit-learn

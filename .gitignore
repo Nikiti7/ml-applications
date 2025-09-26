@@ -1,1 +1,81 @@
-env
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.pyo
+*.pkl
+*.h5
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# PyCharm / VSCode / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+*.out
+*.err
+
+# OS-specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ML / DL stuff
+*.bin
+*.ckpt
+*.onnx
+*.pb
+*.pt
+*.pth
+*.joblib
+
+# cache
+__pycache__/
+*.pyc
+*.tmp
+*.cache
+.cache/
+hf_cache/
+transformers_cache/
+torch_cache/
+tensorflow_cache/
+
+# Data
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.parquet
+*.npy
+*.npz
+*.wav
+*.mp3
+*.mp4
+*.avi
+
+# Colab / Kaggle
+*.json
+kaggle.json
+colab/
