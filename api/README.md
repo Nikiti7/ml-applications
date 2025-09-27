@@ -48,7 +48,7 @@ curl -X POST http://127.0.0.1:8000/analyze \
 }
 ```
 
-2. Анализ списка текстов
+1. Анализ списка текстов
 
 ```bash
 curl -X POST http://127.0.0.1:8000/batch-analyze \
@@ -85,13 +85,21 @@ curl -X POST http://127.0.0.1:8000/batch-analyze \
 
 ```
 
-3. Swagger UI
+1. Swagger UI
 
 Откройте в браузере:
-http://127.0.0.1:8000/docs
+<http://127.0.0.1:8000/docs>
 
 ## Метрики качества
 
-Accuracy, F1-score — для оценки модели на тестовом наборе.
+- **Accuracy, F1-score** — для оценки модели на тестовом наборе.
 
-Для API можно добавить логирование: количество запросов, распределение позитив/негатив
+- Для API можно добавить логирование: количество запросов, распределение позитив/негатив
+
+## Полезные ссылки
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+
+- [Uvicorn](https://www.uvicorn.org/)
+
+- [Hugging Face Sentiment Models](https://huggingface.co/docs/transformers/index)

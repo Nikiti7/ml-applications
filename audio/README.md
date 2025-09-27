@@ -49,8 +49,16 @@ Top-3 predictions:
 
 ## Метрики
 
-- Accuracy
+- **Accuracy** — доля верных предсказаний.
 
-- F1-score
+- **F1-score** — если важен баланс между классами.
 
-- WER
+- Для задач распознавания речи — **WER (Word Error Rate)** и **CER (Character Error Rate)**.
+
+## Полезные ссылки
+
+- [YAMNet на TensorFlow Hub](https://www.kaggle.com/models/google/yamnet/tensorFlow2/yamnet/1?tfhub-redirect=true)
+
+- [AudioSet Dataset](https://research.google.com/audioset/)
+
+- [Librosa Documentation](https://librosa.org/doc/latest/index.html)
