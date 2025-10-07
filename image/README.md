@@ -46,7 +46,8 @@ python train.py
 4. Инференс (один/несколько файлов):
 
 ```bash
-python infer.py --model best_resnet18.pth --images img1.jpg img2.jpg
+python infer.py --model best_resnet18.pth --images data\val\cat\cat.2000.jpg data\val\dog\dog.2000.jpg
+
 ```
 
 ## Метрики
