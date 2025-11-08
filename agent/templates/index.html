@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>DocChat — RAG Агент</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>DocChat — RAG Агент</h1>
+
+      <form method="post">
+        <input
+          type="text"
+          name="question"
+          placeholder="Введите вопрос..."
+          required
+        />
+        <button type="submit">Спросить</button>
+      </form>
+
+      {% if question %}
+      <div><b>Вопрос:</b> {{ question }}</div>
+      {% endif %} {% if answer %}
+      <div class="answer-box">{{ answer }}</div>
+      <div class="sources">
+        <h3>Источники:</h3>
+        <ul>
+          {% for src in sources %}
+          <li>{{ src }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div class="footer">
+        Разработано для проекта «Программная инженерия» — {{ request.client.host
+        }}
+      </div>
+    </div>
+  </body>
+</html>
