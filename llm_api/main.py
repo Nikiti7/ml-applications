@@ -1,68 +1,42 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
-# ==============================
-#  Настройки и инициализация
-# ==============================
+app = FastAPI(title="GPT-2 Text Generation API", version="1.0")
 
-MODEL_NAME = "IlyaGusev/saiga_mistral_7b"
+# Загружаем GPT-2
+model_name = "gpt2"
 
-app = FastAPI(
-    title="LLM Text Generation API",
-    version="1.0",
-    description="API для локальной LLM (генерация текста на основе prompt)",
-)
+print("Loading GPT-2...")
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
 
-# Загружаем токенизатор и модель
-print(f"Загрузка модели: {MODEL_NAME}")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-)
-generator = pipeline(
-    "text-generation",
-    model=model,
-    tokenizer=tokenizer,
-    device=0 if torch.cuda.is_available() else -1,
-)
-
-
-# ==============================
-#  Модели запросов и ответов
-# ==============================
-
-
+# Модель запроса
 class PromptRequest(BaseModel):
     prompt: str
-    max_tokens: int = 100
+    max_length: int = 80
 
 
-class GenerationResponse(BaseModel):
-    prompt: str
-    generated_text: str
+@app.post("/generate")
+def generate_text(req: PromptRequest):
+    inputs = tokenizer(req.prompt, return_tensors="pt")
 
+    output = model.generate(
+        **inputs,
+        max_length=req.max_length,
+        do_sample=True,
+        top_p=0.95,
+        top_k=50
+    )
 
-# ==============================
-#  Эндпоинты
-# ==============================
+    text = tokenizer.decode(output[0], skip_special_tokens=True)
+    return {
+        "prompt": req.prompt,
+        "generated_text": text
+    }
 
 
 @app.get("/")
 def root():
-    return {"message": "LLM API is running. Use /docs for Swagger UI."}
-
-
-@app.post("/generate", response_model=GenerationResponse)
-def generate_text(req: PromptRequest):
-    """Генерация текста на основе промпта"""
-    outputs = generator(
-        req.prompt,
-        max_new_tokens=req.max_tokens,
-        do_sample=True,
-        temperature=0.8,
-        top_p=0.9,
-    )
-    return {"prompt": req.prompt, "generated_text": outputs[0]["generated_text"]}
+    return {"message": "GPT-2 text generation API is running!"}

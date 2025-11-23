@@ -48,7 +48,6 @@ dist/
 *.onnx
 *.pb
 *.pt
-*.pth
 *.joblib
 
 # cache
@@ -72,7 +71,6 @@ tensorflow_cache/
 *.npz
 *.wav
 *.mp3
-*.mp4
 *.avi
 
 # Colab / Kaggle

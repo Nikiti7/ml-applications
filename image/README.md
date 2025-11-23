@@ -47,7 +47,6 @@ python train.py
 
 ```bash
 python infer.py --model best_resnet18.pth --images data\val\cat\cat.2000.jpg data\val\dog\dog.2000.jpg
-
 ```
 
 ## Метрики

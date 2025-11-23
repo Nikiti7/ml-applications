@@ -32,7 +32,8 @@ video/samples/street.mp4
 3. Запустить:
 
 ```bash
-video/samples/street.mp4
+cd video
+python main.py
 ```
 
 4. Результат появится в:

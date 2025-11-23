@@ -24,7 +24,6 @@ tqdm
 opencv-python
 ultralytics
 
-
 # API
 fastapi
 uvicorn
@@ -35,3 +34,12 @@ jupyter
 
 # Дополнительно (удобные утилиты)
 scikit-learn
+
+pytest
+pydantic
+
+# Core
+sentence-transformers
+
+# Web
+jinja2

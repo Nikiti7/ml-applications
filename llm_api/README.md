@@ -5,7 +5,7 @@
 ## Запуск
 
 ```bash
-uvicorn llm_api.main:app --reload --port 8002
+uvicorn llm_api.main:app --reload --port 8003
 ```
 
 Эндпоинты
@@ -15,16 +15,21 @@ POST /generate Генерирует текст по prompt
 ## Пример запроса
 
 ```bash
-curl -X POST "http://127.0.0.1:8002/generate" \
+curl -X POST "http://127.0.0.1:8003/generate" \
      -H "Content-Type: application/json" \
-     -d "{\"prompt\": \"Напиши короткий рассказ про программиста\"}"
+     -d "{\"prompt\": \"In the future, artificial intelligence will\"}"
 ```
 
 ## Пример ответа
 
 ```bash
 {
-  "prompt": "Напиши короткий рассказ про программиста",
-  "generated_text": "Напиши короткий рассказ про программиста, который создал искусственный интеллект..."
+  "prompt": "In the future, artificial intelligence will",
+  "generated_text": "In the future, artificial intelligence will have to perform much more sophisticated cognitive functions..."
 }
 ```
+
+1. Swagger UI
+
+Откройте в браузере:
+<http://127.0.0.1:8003/docs>
