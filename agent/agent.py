@@ -1,121 +1,200 @@
-import os
+#!/usr/bin/env python3
+# agent.py
+# CLI RAG agent: hard rules -> FAQ -> TF-IDF -> ruT5 generation
+
+import joblib
+import json
 from pathlib import Path
-import chromadb
+from sklearn.metrics.pairwise import cosine_similarity
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
+import re
 
-# === Настройки ===
-MODEL_NAME = os.environ.get("DOCCHAT_LLM", "cointegrated/rut5-base-multitask")
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 ROOT = Path(__file__).resolve().parent
-PERSIST_DIR = ROOT / "chroma_db"
+DATA_DIR = ROOT / "data"
+INDEX_FILE = ROOT / "tfidf_index.pkl"
+FAQ_FILE = ROOT / "faq_pairs.pkl"
+HARD_RULES_FILE = DATA_DIR / "hard_rules.json"
 
-print(f"Загрузка модели: {MODEL_NAME} (device={DEVICE})")
+MODEL_NAME = "cointegrated/rut5-base-multitask"  # ruT5, хорош для русскоязычных ответов
+
+# ---------------- load index ----------------
+if not INDEX_FILE.exists():
+    raise SystemExit("Индекс не найден. Запустите python agent/build_index.py")
+
+idx = joblib.load(INDEX_FILE)
+vectorizer = idx["vectorizer"]
+tfidf = idx["tfidf"]
+docs = idx["docs"]
+filenames = idx["filenames"]
+
+faq_pairs = []
+if FAQ_FILE.exists():
+    faq_pairs = joblib.load(FAQ_FILE)
+
+hard_rules = {}
+if HARD_RULES_FILE.exists():
+    try:
+        hard_rules = json.loads(HARD_RULES_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        hard_rules = {}
+
+# ---------------- load model ----------------
+print("Загрузка модели:", MODEL_NAME)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME).to(DEVICE)
-
-# === Подключение к Chroma ===
-client = chromadb.PersistentClient(path=str(PERSIST_DIR))
-collection = client.get_collection("docchat")
+model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
+model.to(device)
 
 
-def retrieve(query: str, k: int = 3):
-    """Извлекаем k наиболее релевантных документов из Chroma"""
-    results = collection.query(query_texts=[query], n_results=k)
-    docs = results["documents"][0]
-    metas = results["metadatas"][0]
-    distances = results["distances"][0]
-
-    # формируем короткий контекст (обрезаем длинные документы)
-    context_parts = []
-    for i, (doc, meta, dist) in enumerate(zip(docs, metas, distances)):
-        # возьмём первые 800 символов каждого документа, чтобы не переполнить
-        snippet = doc.strip().replace("\n", " ")
-        if len(snippet) > 800:
-            snippet = snippet[:800] + "..."
-        context_parts.append(f"[{meta.get('source', 'doc')}] {snippet}")
-    context = "\n\n".join(context_parts)
-    return context
+# ---------------- helpers ----------------
+def normalize_text(s: str) -> str:
+    s = s.lower().strip()
+    s = re.sub(r"[^\wа-яёё\s]", " ", s, flags=re.I)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
 
 
-def generate_answer(query: str, context: str) -> str:
-    """Формируем чёткий инструкционный промпт и генерируем 1-3 предложения"""
+def try_hard_rules(question: str):
+    q = normalize_text(question)
+    for key, target in hard_rules.items():
+        if key in q:
+            # target like "MODULE:text" or "TOPIC:latency"
+            if target.startswith("MODULE:"):
+                module_tag = target.split(":", 1)[1]
+                # find in knowledge_modules.txt block
+                p = DATA_DIR / "knowledge_modules.txt"
+                if p.exists():
+                    txt = p.read_text(encoding="utf-8", errors="ignore")
+                    pattern = r"\[{}]\n(.*?)\n(?=\[|$)".format(
+                        re.escape(
+                            module_tag.split(":")[-1]
+                            if ":" in module_tag
+                            else module_tag
+                        )
+                    )
+                    # simpler: search [MODULE:xxx] blocks
+                    m = re.search(
+                        rf"\[MODULE:{re.escape(module_tag.split(':')[-1])}\]\n(.+?)(?=\n\[MODULE:|\Z)",
+                        txt,
+                        flags=re.S | re.I,
+                    )
+                    if m:
+                        return m.group(1).strip()
+            elif target.startswith("TOPIC:"):
+                topic = target.split(":", 1)[1]
+                # try topic file
+                topic_file = DATA_DIR / f"theory_{topic}.txt"
+                if topic_file.exists():
+                    return topic_file.read_text(encoding="utf-8", errors="ignore")
+    return None
+
+
+def try_faq(question: str, threshold=0.45):
+    if not faq_pairs:
+        return None
+    q_vec = vectorizer.transform([question])
+    # build small FAQ vector matrix
+    faq_questions = []
+    for keys, _ in faq_pairs:
+        # compound key text for vectorization
+        faq_questions.append(" ".join(keys))
+    if not faq_questions:
+        return None
+    faq_vecs = vectorizer.transform(faq_questions)
+    sims = cosine_similarity(q_vec, faq_vecs).flatten()
+    best = sims.argmax()
+    if sims[best] >= threshold:
+        return faq_pairs[best][1]
+    return None
+
+
+def retrieve_tf_idf(question: str, top_k=4):
+    qv = vectorizer.transform([question])
+    sims = cosine_similarity(qv, tfidf).flatten()
+    idxs = sims.argsort()[::-1][:top_k]
+    results = []
+    for i in idxs:
+        results.append(
+            {"filename": filenames[i], "text": docs[i], "score": float(sims[i])}
+        )
+    return results
+
+
+def generate_answer(question: str, context: str, max_new_tokens: int = 180):
     prompt = (
-        "Ты — помощник DocChat. Используй только информацию из контекста ниже.\n"
-        "Дай короткий (1–3 предложения), конкретный и понятный ответ на поставленный вопрос.\n"
-        "Если ответа в контексте нет — честно скажи, что не знаешь.\n\n"
+        "Ты — эксперт по проекту и по теории ML/LLM. "
+        "Используй ТОЛЬКО информацию из Контекста и отвечай на русском языке.\n\n"
         f"Контекст:\n{context}\n\n"
-        f"Вопрос: {query}\n\n"
-        "Короткий ответ (1–3 предложения):"
+        f"Вопрос: {question}\n\n"
+        "Формат ответа:\n1) Краткое резюме (1-2 предложения).\n2) Развернутый ответ (2-6 предложений).\n3) Источники (файлы).\n\nОтвет:\n"
     )
-
-    # Токенизация с обрезкой
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512).to(
-        DEVICE
-    )
-
-    # Параметры генерации: даём модели свободу, но короткий ответ
-    out = model.generate(
-        **inputs,
-        max_new_tokens=150,
-        do_sample=True,
-        top_p=0.9,
-        temperature=0.7,
-        eos_token_id=tokenizer.eos_token_id,
-    )
-
+    inputs = tokenizer(
+        prompt, return_tensors="pt", truncation=True, max_length=1024
+    ).to(device)
+    with torch.no_grad():
+        out = model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            do_sample=False,
+            num_beams=4,
+            early_stopping=True,
+        )
     text = tokenizer.decode(out[0], skip_special_tokens=True)
-    # Убираем возможную повтораную часть промпта (иногда модель копирует промпт)
-    # Если модель возвращает весь prompt+answer, берём хвост после "Короткий ответ"
-    marker = "Короткий ответ (1–3 предложения):"
-    if marker in text:
-        answer = text.split(marker, 1)[-1].strip()
-    else:
-        # иначе считаем, что модель вернула только ответ
-        answer = text.strip()
-
-    # Удаляем лишние пробелы/новые строки
-    answer = " ".join(answer.split())
-    # Ограничим до первых 3 предложений
-    sentences = [
-        s.strip()
-        for s in answer.replace("?", "?.").replace("!", "!.").split(".")
-        if s.strip()
-    ]
-    if len(sentences) > 3:
-        answer = ". ".join(sentences[:3]) + "."
-    else:
-        # восстановим точки если нужно
-        if (
-            not answer.endswith(".")
-            and not answer.endswith("?")
-            and not answer.endswith("!")
-        ):
-            answer = answer + "."
-    return answer
+    # strip prompt prefix if present
+    if text.startswith(prompt):
+        text = text[len(prompt) :].strip()
+    return text
 
 
-def cli_loop(k=3):
-    print("DocChat is ready. Type your question (or 'exit'):\n")
-    while True:
-        try:
-            q = input("> ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print("\n Bye!")
-            break
-        if not q:
-            continue
-        if q.lower() in {"exit", "quit"}:
-            print("Bye!")
-            break
+# ---------------- main interface ----------------
+def answer_question(question: str):
+    # 1. hard rules
+    hr = try_hard_rules(question)
+    if hr:
+        return hr + f"\n\n(Источник: hard_rules / knowledge_modules.txt)"
 
-        context = retrieve(q, k)
-        answer = generate_answer(q, context)
+    # 2. FAQ exact/fuzzy
+    faq = try_faq(question, threshold=0.45)
+    if faq:
+        return faq + "\n\n(Источник: FAQ)"
 
-        print("\n--- Answer ---\n")
-        print(answer)
-        print("\n")  # пустая строка после ответа
+    # 3. TF-IDF retrieval
+    retrieved = retrieve_tf_idf(question, top_k=5)
+    if not retrieved:
+        return "Я не нашёл информацию в документации проекта."
+
+    # confidence check: if top score too low -> say not found
+    if retrieved[0]["score"] < 0.03:
+        return "Я не нашёл достаточно релевантной информации в документах проекта. Уточните вопрос."
+
+    # build context from top-3
+    ctx_parts = []
+    srcs = []
+    for item in retrieved[:3]:
+        ctx = item["text"]
+        # shorten large docs
+        if len(ctx) > 2000:
+            ctx = ctx[:2000] + "..."
+        ctx_parts.append(f"[{item['filename']}]\n{ctx}")
+        srcs.append(item["filename"])
+    context = "\n\n---\n\n".join(ctx_parts)
+
+    # 4. generate
+    ans = generate_answer(question, context)
+    # append sources if not present
+    ans = ans.strip()
+    ans += "\n\nИсточники:\n" + "\n".join(f"- {s}" for s in srcs)
+    return ans
 
 
+# CLI
 if __name__ == "__main__":
-    cli_loop()
+    print("\nDocAgent (TF-IDF + ruT5) готов. Введите вопрос (exit для выхода).\n")
+    while True:
+        q = input("> ").strip()
+        if q.lower() in ("exit", "quit"):
+            break
+        print("\n--- Answer ---\n")
+        print(answer_question(q))
+        print("\n")

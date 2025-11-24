@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
 OUT = ROOT / "results.json"
 
-# Модели для тестирования — подбери нужные
+# Модели для тестирования
 MODELS = [
     {"name": "gpt2", "type": "causal"},
     {"name": "distilgpt2", "type": "causal"},

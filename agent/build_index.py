@@ -1,78 +1,85 @@
-import os
+#!/usr/bin/env python3
+# build_index.py
+# Построение TF-IDF индекса для папки agent/data
 from pathlib import Path
-from sentence_transformers import SentenceTransformer
-import chromadb
-from tqdm import tqdm
+import joblib
+from sklearn.feature_extraction.text import TfidfVectorizer
+import json
 
-# === Пути и параметры ===
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
-PERSIST_DIR = ROOT / "chroma_db"
-MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+OUT_FILE = ROOT / "tfidf_index.pkl"
+HARD_RULES = DATA_DIR / "hard_rules.json"
+
+print("DATA_DIR =", DATA_DIR)
 
 
-def load_texts(data_dir: Path):
-    """Загружает все текстовые документы из data/"""
-    docs, ids, metas = [], [], []
-    for f in data_dir.glob("*.txt"):
-        text = f.read_text(encoding="utf-8", errors="ignore").strip()
-        if not text:
-            continue
+def load_txt_files():
+    docs = []
+    filenames = []
+    for p in sorted(DATA_DIR.glob("*.txt")):
+        try:
+            text = p.read_text(encoding="utf-8")
+        except Exception:
+            text = p.read_text(encoding="cp1251", errors="ignore")
         docs.append(text)
-        ids.append(f.name)
-        metas.append({"source": f.name})
-    return ids, docs, metas
+        filenames.append(p.name)
+    return docs, filenames
+
+
+def load_faq_pairs(fpath):
+    # faq files with '||' separator on each entry: keys separated by ';' before ||
+    items = []
+    if not fpath.exists():
+        return items
+    raw = fpath.read_text(encoding="utf-8", errors="ignore")
+    for block in raw.split("\n\n"):
+        if "||" in block:
+            left, right = block.split("||", 1)
+            keys = [k.strip().lower() for k in left.split(";") if k.strip()]
+            answer = right.strip()
+            if keys and answer:
+                items.append((keys, answer))
+    return items
 
 
 def main():
-    if not DATA_DIR.exists():
-        raise SystemExit("Не найдена папка data/. Сначала запусти prepare_docs.py")
-
-    ids, docs, metas = load_texts(DATA_DIR)
-    print(f"Загружено документов: {len(docs)}")
-
-    # === Модель для эмбеддингов ===
-    print(f"Загрузка модели эмбеддингов: {MODEL_NAME}")
-    embedder = SentenceTransformer(MODEL_NAME)
-
-    # === Инициализация клиента Chroma ===
-    client = chromadb.PersistentClient(path=str(PERSIST_DIR))
-
-    # Проверяем/создаем коллекцию
-    try:
-        collection = client.get_collection("docchat")
-    except Exception:
-        collection = client.create_collection("docchat")
-
-    # === Удаляем старые данные (если есть) ===
-    try:
-        existing = collection.get()
-        if existing and existing.get("ids"):
-            collection.delete(ids=existing["ids"])
-            print(f"Старые данные ({len(existing['ids'])}) удалены.")
-        else:
-            print("Коллекция пуста — создаём заново.")
-    except Exception as e:
-        print("Ошибка при очистке коллекции (возможно, она пуста):", e)
-
-    # === Добавляем документы ===
-    print("Добавляем документы в Chroma...")
-    batch_size = 32
-    for i in tqdm(range(0, len(docs), batch_size)):
-        batch_docs = docs[i : i + batch_size]
-        batch_ids = ids[i : i + batch_size]
-        batch_meta = metas[i : i + batch_size]
-        embs = embedder.encode(
-            batch_docs, convert_to_numpy=True, show_progress_bar=False
-        )
-        collection.add(
-            ids=batch_ids,
-            documents=batch_docs,
-            metadatas=batch_meta,
-            embeddings=embs.tolist(),
+    docs, filenames = load_txt_files()
+    if len(docs) == 0:
+        raise SystemExit(
+            "В папке agent/data нет .txt файлов — создайте их и запустите снова"
         )
 
-    print(f"Индекс успешно создан и сохранён в: {PERSIST_DIR}")
+    vectorizer = TfidfVectorizer(lowercase=True, max_features=50000, ngram_range=(1, 2))
+    tfidf = vectorizer.fit_transform(docs)
+
+    # save index
+    joblib.dump(
+        {
+            "vectorizer": vectorizer,
+            "tfidf": tfidf,
+            "docs": docs,
+            "filenames": filenames,
+        },
+        OUT_FILE,
+    )
+
+    # load and save faq pairs (if exist)
+    faq_pairs = load_faq_pairs(DATA_DIR / "faq_modules.txt") + load_faq_pairs(
+        DATA_DIR / "faq_theory.txt"
+    )
+    joblib.dump(faq_pairs, ROOT / "faq_pairs.pkl")
+
+    # copy hard_rules (just validate)
+    if HARD_RULES.exists():
+        try:
+            hr = json.loads(HARD_RULES.read_text(encoding="utf-8"))
+            print(f"Loaded hard_rules: {len(hr)} keys")
+        except Exception:
+            print("hard_rules.json exists but is invalid JSON")
+
+    print("TF-IDF индекс сохранён в:", OUT_FILE)
+    print("FAQ пар сохранено в: faq_pairs.pkl")
 
 
 if __name__ == "__main__":

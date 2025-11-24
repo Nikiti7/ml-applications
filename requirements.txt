@@ -43,3 +43,5 @@ sentence-transformers
 
 # Web
 jinja2
+
+nltk

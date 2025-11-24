@@ -26,7 +26,7 @@
 
 ## Структура репозитория
 
-```
+```bash
 ml-applications/
 │
 ├── text/ # Анализ тональности текста
@@ -141,7 +141,3 @@ uvicorn main:app --reload
 - [PyTorch Hub](https://pytorch.org/hub/)
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
-
-```
-
-```

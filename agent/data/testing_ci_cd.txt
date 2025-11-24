@@ -1,9 +1,17 @@
-Для тестирования используется pytest и FastAPI TestClient.
-Настроен GitHub Actions workflow:
-- при каждом commit автоматически запускаются тесты API;
-- проверяется успешный ответ и корректность формата JSON.
+Тестирование и CI/CD — что сделано
 
-Тесты охватывают:
-- Sentiment API;
-- LLM API (генерация текста);
-- обработку ошибок и некорректных запросов.
+1) Тесты
+- pytest используется для unit/integration тестов API.
+- Тесты покрывают: эндпоинты /analyze, /batch-analyze, /generate, валидация входных данных.
+
+2) GitHub Actions
+- workflow: .github/workflows/test_api.yml
+- на push/pr в main выполняются шаги:
+  - Checkout
+  - Setup Python
+  - pip install -r requirements.txt
+  - pytest -v
+
+3) Рекомендации по защите
+- На защите показать: запуск тестов, успешный результат (3 passed).
+- Сохранить логи тестов (screenshots/).

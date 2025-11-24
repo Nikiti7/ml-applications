@@ -1,0 +1,33 @@
+Batch size — количество примеров за один шаг обучения.
+
+Optimizer — алгоритм обновления весов (SGD, Adam).
+
+Loss function — меряет ошибку модели.
+
+Epoch — проход по всему датасету.
+
+Training / Validation / Test split — разбиение данных.
+
+Overfitting — модель запоминает, но не обобщает.
+
+Underfitting — модель слишком простая.
+
+Regularization — методы борьбы с переобучением.
+
+Learning rate — скорость обновления весов.
+
+Activation functions — ReLU, Sigmoid, Tanh.
+
+Gradient Descent — основной метод оптимизации.
+
+Confusion matrix — таблица TP/FP/TN/FN.
+
+Accuracy / Precision / Recall / F1 — метрики.
+
+Tensor — многомерный массив данных.
+
+Embedding — числовое представление объекта.
+
+Семантическое пространство — пространство эмбеддингов.
+
+Similarity (cosine) — мера близости векторных представлений.
