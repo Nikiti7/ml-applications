@@ -116,16 +116,16 @@ jobs:
           python-version: "3.12"
 
       - name: Install compare deps
-        run: pip install -r compare/requirements-compare.txt
+        run: pip install -r models/agent/compare/requirements-compare.txt
 
       - name: Run benchmark
-        run: python compare/compare_llms.py
+        run: python models/agent/compare/compare_llms.py
 
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:
           name: llm-benchmark-results
-          path: compare/results.txt
+          path: models/agent/compare/results.txt
 
   ###########################################################################
   # 6) BUILD DOCKER IMAGE & PUSH TO GHCR (PUBLIC)
