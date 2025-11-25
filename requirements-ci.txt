@@ -1,0 +1,9 @@
+transformers==4.44.2
+torch==2.3.0
+fastapi
+uvicorn
+pytest
+chromadb
+scikit-learn
+sentencepiece
+pydantic

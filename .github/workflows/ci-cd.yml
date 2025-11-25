@@ -66,9 +66,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt || true
-          pip install -r api/llm_api/requirements.txt || true
-          pip install pytest
+          pip install -r requirements-ci.txt
 
       - name: Run tests
         run: pytest -q
@@ -90,7 +88,7 @@ jobs:
 
       - name: Install deps
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements-ci.txt
           pip install chromadb scikit-learn transformers sentencepiece
 
       - name: Build index
