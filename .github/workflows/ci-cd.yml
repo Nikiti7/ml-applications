@@ -1,4 +1,4 @@
-name: ML Applications – CI/CD
+name: ML Applications - CI/CD
 
 on:
   push:
