@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  ###########################################################################
-  # 1) CODE QUALITY (linting + formatting)
-  ###########################################################################
+
+  ##############################
+  # 1. LINT + FORMAT
+  ##############################
   lint:
-    name: Lint & Style Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,8 +22,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install linters
-        run: |
-          pip install flake8 black
+        run: pip install flake8 black
 
       - name: Run flake8
         run: flake8 .
@@ -31,11 +30,10 @@ jobs:
       - name: Auto-format with black
         run: black .
 
-  ###########################################################################
-  # 2) SECURITY SCAN
-  ###########################################################################
+  ##############################
+  # 2. SECURITY
+  ##############################
   security:
-    name: Security Scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,11 +44,10 @@ jobs:
       - name: Run Bandit
         run: bandit -qr . --skip B101,B301,B403,B615,B614
 
-  ###########################################################################
-  # 3) UNIT TESTS
-  ###########################################################################
+  ##############################
+  # 3. TESTS
+  ##############################
   tests:
-    name: Run Unit Tests
     runs-on: ubuntu-latest
     needs: [lint, security]
 
@@ -61,21 +58,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Add project root to PYTHONPATH
+      - name: Add project to PYTHONPATH
         run: echo "PYTHONPATH=." >> $GITHUB_ENV
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements-ci.txt
+      - name: Install light dependencies
+        run: pip install -r requirements-ci.txt
 
       - name: Run tests
         run: pytest -q
 
-  ###########################################################################
-  # 4) BUILD RAG INDEX (no secrets needed)
-  ###########################################################################
+  ##############################
+  # 4. BUILD RAG INDEX
+  ##############################
   build-index:
-    name: Build RAG Index
     runs-on: ubuntu-latest
     needs: tests
 
@@ -100,11 +95,10 @@ jobs:
           name: rag-index
           path: models/agent/chroma_db/
 
-  ###########################################################################
-  # 5) LLM COMPARISON BENCHMARK
-  ###########################################################################
+  ##############################
+  # 5. LLM BENCHMARK
+  ##############################
   compare-llm:
-    name: LLM Benchmark
     runs-on: ubuntu-latest
     needs: build-index
 
@@ -127,11 +121,10 @@ jobs:
           name: llm-benchmark-results
           path: models/agent/compare/results.txt
 
-  ###########################################################################
-  # 6) BUILD DOCKER IMAGE & PUSH TO GHCR (PUBLIC)
-  ###########################################################################
+  ##############################
+  # 6. BUILD + PUSH DOCKER IMAGE
+  ##############################
   docker:
-    name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: compare-llm
 
@@ -142,11 +135,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -158,3 +149,5 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/nikiti7/ml-applications:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
