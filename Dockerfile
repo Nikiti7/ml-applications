@@ -24,8 +24,7 @@ COPY . /app
 # ===========================
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir -r models/agent/requirements.txt
-RUN pip install --no-cache-dir -r api/model_apirequirements.txt
-RUN pip install --no-cache-dir -r api/llm_api/requirements.txt || true
+RUN pip install --no-cache-dir -r api/requirements.txt || true
 
 # ===========================
 # 5) Pre-build RAG index (optional)
