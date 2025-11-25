@@ -1,0 +1,6 @@
+{
+  "dont_hallucinate": true,
+  "if_unknown": "Я не нашёл эту информацию в проекте.",
+  "answer_style": "структурировано, кратко, по делу",
+  "project_focus": true
+}

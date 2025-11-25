@@ -74,6 +74,5 @@ tensorflow_cache/
 *.avi
 
 # Colab / Kaggle
-*.json
 kaggle.json
 colab/

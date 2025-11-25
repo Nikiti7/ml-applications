@@ -1,0 +1,83 @@
+[
+  {
+    "model": "gpt2",
+    "type": "causal",
+    "perplexity": 17.42362403103804,
+    "avg_gen_time_s": 3.6222852945327757,
+    "coherence_bleu": 0.005714295696860027,
+    "factual_correct": 1,
+    "factual_total": 10,
+    "factual_acc": 0.1,
+    "samples": [
+      {
+        "prompt": "Once upon a time in a small village,",
+        "ref": " there lived an old man who told stories to children every evening.",
+        "gen": "a young girl named Nana was kidnapped by a group of bandits. She was taken to a small village, where she was forced to work as a maid. She was then taken to a small village, where she was forced to work as a maid.\n\nThe next day, the bandits attacked the village. The"
+      },
+      {
+        "prompt": "The model predicted that",
+        "ref": " the stock market would increase by nearly 10 percent next month.",
+        "gen": "the average age of the population would be about 30 years.\n\nThe study, published in the journal Science, also found that the average age of the population would be about 30 years.\n\n\"The average age of the population would be about 30 years,\" said lead author Dr. David H. Hirsch,"
+      },
+      {
+        "prompt": "Deep learning is a subset of machine learning that",
+        "ref": " uses neural networks with multiple layers to extract high-level features from data.",
+        "gen": "uses a set of algorithms to learn a set of data. The algorithm is a set of algorithms that are able to learn a set of data. The algorithm is a set of algorithms that are able to learn a set of data.\n\nThe algorithm is a set of algorithms that are able to learn a set of data"
+      }
+    ]
+  },
+  {
+    "model": "distilgpt2",
+    "type": "causal",
+    "perplexity": 28.837802884876734,
+    "avg_gen_time_s": 2.4306591987609862,
+    "coherence_bleu": 0.013421822943270456,
+    "factual_correct": 6,
+    "factual_total": 10,
+    "factual_acc": 0.6,
+    "samples": [
+      {
+        "prompt": "Once upon a time in a small village,",
+        "ref": " there lived an old man who told stories to children every evening.",
+        "gen": "a man in a white robe, a man in a black robe, a man in a black robe, a man in a black robe, a man in a black robe, a man in a black robe, a man in a black robe, a man in a black robe, a man in a black robe, a"
+      },
+      {
+        "prompt": "The model predicted that",
+        "ref": " the stock market would increase by nearly 10 percent next month.",
+        "gen": "the average of the population would be about 1.5 million."
+      },
+      {
+        "prompt": "Deep learning is a subset of machine learning that",
+        "ref": " uses neural networks with multiple layers to extract high-level features from data.",
+        "gen": "is used to learn from the data."
+      }
+    ]
+  },
+  {
+    "model": "cointegrated/rut5-base-multitask",
+    "type": "seq2seq",
+    "perplexity": 1.1530687151011954,
+    "avg_gen_time_s": 1.9315036296844483,
+    "coherence_bleu": 0.006638451693501371,
+    "factual_correct": 0,
+    "factual_total": 10,
+    "factual_acc": 0.0,
+    "samples": [
+      {
+        "prompt": "Once upon a time in a small village,",
+        "ref": " there lived an old man who told stories to children every evening.",
+        "gen": "Once upon a time in a small village, a small village."
+      },
+      {
+        "prompt": "The model predicted that",
+        "ref": " the stock market would increase by nearly 10 percent next month.",
+        "gen": "The model predicted that the model predicted that the model would be a realistic model."
+      },
+      {
+        "prompt": "Deep learning is a subset of machine learning that",
+        "ref": " uses neural networks with multiple layers to extract high-level features from data.",
+        "gen": "Это a subset of machine learning that is a subset of machine learning that is a subset of machine learning that is a subset of machine learning that is a subset of machine learning that is a subset of machine learning that is a subset of machine learning that"
+      }
+    ]
+  }
+]
