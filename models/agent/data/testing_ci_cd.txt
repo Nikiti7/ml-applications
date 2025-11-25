@@ -1,0 +1,17 @@
+Тестирование и CI/CD — что сделано
+
+1) Тесты
+- pytest используется для unit/integration тестов API.
+- Тесты покрывают: эндпоинты /analyze, /batch-analyze, /generate, валидация входных данных.
+
+2) GitHub Actions
+- workflow: .github/workflows/test_api.yml
+- на push/pr в main выполняются шаги:
+  - Checkout
+  - Setup Python
+  - pip install -r requirements.txt
+  - pytest -v
+
+3) Рекомендации по защите
+- На защите показать: запуск тестов, успешный результат (3 passed).
+- Сохранить логи тестов (screenshots/).

@@ -1,7 +1,0 @@
-Machine learning allows computers to learn patterns from data and make predictions without being explicitly programmed.
-Artificial intelligence is rapidly transforming many industries, including healthcare, finance, and education.
-The cat sat on the mat and looked curiously at the moving light on the wall.
-Программная инженерия изучает методы разработки, тестирования и сопровождения программных систем.
-В будущем искусственный интеллект станет важной частью всех технологических решений.
-Climate change is one of the biggest challenges of the 21st century and requires global cooperation.
-Машинное обучение используется для распознавания изображений, анализа речи и обработки текста.

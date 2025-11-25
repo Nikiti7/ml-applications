@@ -1,0 +1,35 @@
+Проект представляет собой модульную систему анализа данных (текст, аудио, изображение, видео)
+и LLM-агента с Retrieval-Augmented Generation.
+
+Цель проекта:
+– продемонстрировать полный цикл разработки ML-приложения:
+  * модели
+  * API
+  * CI/CD
+  * тестирование
+  * документация
+  * веб-интерфейс
+  * LLM-агент
+
+Основные компоненты:
+1) text — NLP-пайплайн и sentiment analysis
+2) image — классификация изображений через ResNet18
+3) audio — STT + NLP
+4) video — извлечение кадров → классификация
+5) api — FastAPI для всех модулей
+6) llm — GPT-2 генерация текста
+7) rag-agent — оффлайн RAG через TF-IDF + ruT5
+8) web-ui — визуальный интерфейс для агента
+
+Фреймворки:
+– PyTorch
+– HuggingFace Transformers
+– FastAPI
+– TF-IDF / scikit-learn
+– OpenCV / ffmpeg
+– Jinja2
+
+Инфраструктура:
+– Uvicorn server
+– Тесты через pytest
+– CI/CD pipeline (GitHub Actions)

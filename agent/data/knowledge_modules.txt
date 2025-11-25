@@ -1,8 +1,0 @@
-Модуль text — NLP анализ.
-Модуль image — классификация изображений.
-Модуль audio — транскрипция + NLP.
-Модуль video — классификация кадров.
-Модуль llm — GPT-2 генерация.
-Модуль rag — TF-IDF + ruT5.
-Модуль api — FastAPI endpoints.
-Модуль web — UI на Jinja2.

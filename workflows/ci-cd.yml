@@ -1,0 +1,159 @@
+name: ML Applications – CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ###########################################################################
+  # 1) CODE QUALITY (linting + formatting)
+  ###########################################################################
+  lint:
+    name: Lint & Style Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install linters
+        run: |
+          pip install flake8 black
+
+      - name: Run flake8
+        run: flake8 .
+
+      - name: Check formatting with black
+        run: black --check .
+
+  ###########################################################################
+  # 2) SECURITY SCAN
+  ###########################################################################
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit
+        run: bandit -qr .
+
+  ###########################################################################
+  # 3) UNIT TESTS
+  ###########################################################################
+  tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    needs: [lint, security]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt || true
+          pip install -r api/llm_api/requirements.txt || true
+          pip install pytest
+
+      - name: Run tests
+        run: pytest -q
+
+  ###########################################################################
+  # 4) BUILD RAG INDEX (no secrets needed)
+  ###########################################################################
+  build-index:
+    name: Build RAG Index
+    runs-on: ubuntu-latest
+    needs: tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+          pip install chromadb scikit-learn transformers sentencepiece
+
+      - name: Build index
+        run: python models/agent/build_index.py
+
+      - name: Upload index
+        uses: actions/upload-artifact@v4
+        with:
+          name: rag-index
+          path: models/agent/chroma_db/
+
+  ###########################################################################
+  # 5) LLM COMPARISON BENCHMARK
+  ###########################################################################
+  compare-llm:
+    name: LLM Benchmark
+    runs-on: ubuntu-latest
+    needs: build-index
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install compare deps
+        run: pip install -r compare/requirements-compare.txt
+
+      - name: Run benchmark
+        run: python compare/compare_llms.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: llm-benchmark-results
+          path: compare/results.txt
+
+  ###########################################################################
+  # 6) BUILD DOCKER IMAGE & PUSH TO GHCR (PUBLIC)
+  ###########################################################################
+  docker:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: compare-llm
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/ml-applications:latest

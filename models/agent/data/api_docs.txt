@@ -1,0 +1,31 @@
+API Компоненты проекта (FastAPI)
+
+1) POST /analyze_text
+   Вход: { "text": "..." }
+   Выход: sentiment, score, keywords
+
+2) POST /generate_text
+   Вход: { "prompt": "..." }
+   Выход: { "generated_text": "..." }
+   Основа — GPT-2
+
+3) POST /predict_image
+   Вход: изображение (multipart/form-data)
+   Выход: класс + вероятность
+
+4) POST /predict_audio
+   Вход: аудиофайл
+   Выход: транскрипт + анализ текста
+
+5) POST /predict_video
+   Вход: видеоролик
+   Выход: список кадров и классов
+
+6) POST /rag_query
+   Вход: { "question": "..." }
+   Выход: ответ ruT5 + источники
+
+Архитектура:
+– Uvicorn backend
+– Однотипная JSON-схема
+– Документация автоматически генерируется (Swagger /docs)

@@ -1,0 +1,14 @@
+# Core
+torch
+transformers==4.44.2
+sentence-transformers
+
+# Web
+fastapi
+uvicorn
+jinja2
+
+# Utils
+tqdm
+numpy
+

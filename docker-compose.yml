@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  # ===========================
+  # 1) Web UI / RAG agent
+  # ===========================
+  web:
+    build: .
+    container_name: ml-web
+    command: python agent/web_app.py
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./agent/chroma_db:/app/agent/chroma_db
+      - ./agent/data:/app/agent/data
+    restart: unless-stopped
+
+  # ===========================
+  # 2) Sentiment Analysis API
+  # ===========================
+  api:
+    build: .
+    container_name: ml-api
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  # ===========================
+  # 3) GPT-2 Text Generation API
+  # ===========================
+  gpt2:
+    build: .
+    container_name: gpt2-api
+    command: uvicorn llm_api.main:app --host 0.0.0.0 --port 8002
+    ports:
+      - "8002:8002"
+    restart: unless-stopped
