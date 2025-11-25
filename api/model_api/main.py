@@ -10,7 +10,7 @@ os.environ["TRANSFORMERS_NO_FLAX"] = "1"
 os.environ["TRANSFORMERS_NO_TORCHVISION"] = "1"  # чтобы не грузил видео/image_utils
 
 
-MODEL_NAME = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
+MODEL_NAME = "prajjwal1/bert-tiny"
 
 app = FastAPI(title="ML Model API")
 
