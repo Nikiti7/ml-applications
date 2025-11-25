@@ -37,4 +37,4 @@ RUN python models/agent/build_index.py || true
 # ===========================
 EXPOSE 8000
 
-CMD ["python", "agent/web_app.py"]
+CMD ["python", "models/agent/web_app.py"]
