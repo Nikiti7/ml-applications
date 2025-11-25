@@ -1,10 +1,14 @@
-# api/model_api/main.py
+import os
 
+os.environ["TRANSFORMERS_NO_TF"] = "1"
+os.environ["TRANSFORMERS_NO_FLAX"] = "1"
+os.environ["TRANSFORMERS_NO_TORCHVISION"] = "1"  # чтобы не грузил видео/image_utils
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
 
 MODEL_NAME = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
 
