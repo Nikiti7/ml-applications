@@ -1,43 +1,44 @@
+# api/model_api/main.py
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
-from transformers import pipeline
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-# Инициализация FastAPI
-app = FastAPI(title="Sentiment Analysis API", version="1.1")
+MODEL_NAME = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
 
-# Загружаем готовую модель Hugging Face
-classifier = pipeline("sentiment-analysis")
+app = FastAPI(title="ML Model API")
 
+# Load tokenizer and model (PyTorch backend only)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
+model.eval()
 
-# Модель запроса для одного текста
 class TextRequest(BaseModel):
     text: str
 
-
-# Модель запроса для списка текстов
 class BatchRequest(BaseModel):
     texts: List[str]
 
 
-# Эндпоинт для одного текста
+def classify(text: str):
+    inputs = tokenizer(text, return_tensors="pt", truncation=True)
+    with torch.no_grad():
+        outputs = model(**inputs)
+    scores = torch.softmax(outputs.logits, dim=1)[0]
+
+    label = "POSITIVE" if scores[1] > scores[0] else "NEGATIVE"
+    score = float(scores.max().item())
+
+    return {"text": text, "label": label, "score": round(score, 3)}
+
+
 @app.post("/analyze")
 def analyze(req: TextRequest):
-    result = classifier(req.text)[0]
-    return {
-        "text": req.text,
-        "label": result["label"],
-        "score": round(result["score"], 3),
-    }
+    return classify(req.text)
 
 
-# Эндпоинт для списка текстов
 @app.post("/batch-analyze")
 def batch_analyze(req: BatchRequest):
-    results = classifier(req.texts)
-    response = []
-    for text, res in zip(req.texts, results):
-        response.append(
-            {"text": text, "label": res["label"], "score": round(res["score"], 3)}
-        )
-    return response
+    return [classify(t) for t in req.texts]
