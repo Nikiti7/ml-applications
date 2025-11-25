@@ -15,8 +15,10 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
 model.eval()
 
+
 class TextRequest(BaseModel):
     text: str
+
 
 class BatchRequest(BaseModel):
     texts: List[str]
