@@ -32,7 +32,7 @@ GEN_KW = dict(max_new_tokens=64, do_sample=False, temperature=0.7, top_p=0.9)
 def read_lines(p: Path) -> List[str]:
     if not p.exists():
         return []
-    return [l.strip() for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [l.strip() for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]  # noqa: E741
 
 
 def read_jsonl(p: Path) -> List[Dict]:

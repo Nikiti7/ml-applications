@@ -152,7 +152,7 @@ def answer_question(question: str):
     # 1. hard rules
     hr = try_hard_rules(question)
     if hr:
-        return hr + f"\n\n(Источник: hard_rules / knowledge_modules.txt)"
+        return f"{hr} + \n\n(Источник: hard_rules / knowledge_modules.txt)"
 
     # 2. FAQ exact/fuzzy
     faq = try_faq(question, threshold=0.45)
