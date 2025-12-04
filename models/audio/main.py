@@ -13,9 +13,9 @@ class_names = list(tf.io.gfile.GFile(class_map_path))
 
 # Файлы для теста
 files = [
-    r"C:\Users\Nikol\Desktop\ml-applications\audio\speech.wav",
-    r"C:\Users\Nikol\Desktop\ml-applications\audio\music.wav",
-    r"C:\Users\Nikol\Desktop\ml-applications\audio\noise.wav",
+    r"C:\Users\Nikol\Desktop\ml-applications\models\audio\speech.wav",
+    r"C:\Users\Nikol\Desktop\ml-applications\models\audio\music.wav",
+    r"C:\Users\Nikol\Desktop\ml-applications\models\audio\noise.wav",
 ]
 
 

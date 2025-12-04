@@ -20,7 +20,7 @@ YAMNet обучена на датасете **AudioSet** и способна к�
 ### Запуск
 
 ```bash
-cd audio
+cd models/audio
 pip install -r ../requirements.txt
 python main.py
 ```

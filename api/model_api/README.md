@@ -25,7 +25,7 @@ API поддерживает:
 ```bash
 cd api
 pip install -r ../requirements.txt
-uvicorn main:app --reload
+uvicorn model_api.main:app --reload
 ```
 
 ## Примеры использования
@@ -88,23 +88,6 @@ curl -X POST http://127.0.0.1:8000/batch-analyze \
 
 Откройте в браузере:
 <http://127.0.0.1:8000/docs#/>
-
-## Тестирование API
-
-Тесты реализованы с помощью **pytest** и встроенного `TestClient` из FastAPI.  
-Проверяются корректность ответов, обработка ошибок и структура данных.
-
-### Примеры тестов
-
-- `/analyze` — анализ одного текста
-- `/batch-analyze` — пакетная обработка списка текстов
-- Неверные запросы (`400/422`)
-
-### Запуск локально:
-
-```bash
-python -m api.test_api -q
-```
 
 ## Метрики качества
 

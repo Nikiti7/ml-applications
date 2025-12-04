@@ -20,6 +20,7 @@
 
 ```bash
 pip install -r ../requirements.txt
+cd models/text
 python main.py
 ```
 

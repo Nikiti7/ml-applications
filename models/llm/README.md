@@ -22,7 +22,7 @@
 ### 1. Установите зависимости
 
 ```bash
-cd llm
+cd models/llm
 pip install -r ../requirements.txt
 python main.py
 ```

@@ -32,7 +32,7 @@ video/samples/street.mp4
 3. Запустить:
 
 ```bash
-cd video
+cd models/video
 python main.py
 ```
 

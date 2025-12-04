@@ -29,7 +29,7 @@ data/
 1. Установить зависимости:
 
 ```bash
-cd image
+cd models/image
 pip install -r ../requirements.txt
 ```
 
